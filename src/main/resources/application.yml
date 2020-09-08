@@ -1,0 +1,25 @@
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: configprops, env, health
+
+spring:
+  data:
+    mongodb:
+      database: candidates
+      uri: mongodb+srv://${MONGO_USER:user}:${MONGO_PASS:user}@${MONGO_HOST:host}/candidates?retryWrites=true&w=majority&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
+    virtual-host: ${RABBIT_VHOST}
+
+app:
+  rest:
+    read-timeout-in-ms: 5000
+    connect-timeout-in-ms: 5000
+  queue:
+    candidate:
+      candidate-code-queue: candidate.code
