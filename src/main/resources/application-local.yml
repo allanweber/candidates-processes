@@ -1,8 +1,9 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${MONGO_HOST:localhost:27017}/career?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000
-
+      uri: mongodb://${MONGO_HOST:localhost:27017}/candidates?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000
+server:
+  port: 8081
 app:
   queue:
     candidate:
