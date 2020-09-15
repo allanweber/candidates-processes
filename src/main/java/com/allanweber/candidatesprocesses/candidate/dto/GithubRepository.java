@@ -24,5 +24,8 @@ public class GithubRepository {
     @JsonProperty("clone_url")
     private String cloneUrl;
 
-    private String language;
+    @JsonProperty("language")
+    private String mainLanguage;
+
+    private GithubRepositoryLanguage languages;
 }
