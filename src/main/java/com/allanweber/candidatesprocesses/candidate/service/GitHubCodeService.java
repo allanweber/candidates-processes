@@ -2,6 +2,7 @@ package com.allanweber.candidatesprocesses.candidate.service;
 
 import com.allanweber.candidatesprocesses.candidate.dto.GitHubProfileMessage;
 import com.allanweber.candidatesprocesses.candidate.dto.GithubRepository;
+import com.allanweber.candidatesprocesses.candidate.dto.GithubRepositoryLanguage;
 import com.allanweber.candidatesprocesses.candidate.repository.CandidateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +15,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -26,7 +27,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GitHubCodeService {
 
+    private static final String GIT_API = "https://api.github.com";
     private static final String REPOS_PATH = "repos";
+    private static final String LANGUAGES_PATH = "languages";
     private static final String PAGE_QUERY = "page={page}";
 
     private final CandidateRepository repository;
@@ -41,7 +44,7 @@ public class GitHubCodeService {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + gitHubProfile.getToken());
         headers.add("Accept", "application/vnd.github.v3+json");
-        HttpEntity<?> entity = new HttpEntity<>(headers);
+        HttpEntity<?> httpEntity = new HttpEntity<>(headers);
 
         do {
             String githubUri = UriComponentsBuilder.newInstance()
@@ -52,9 +55,18 @@ public class GitHubCodeService {
             log.info("Reading repositories on {}", githubUri);
 
             ResponseEntity<List<GithubRepository>> githubResponse =
-                    restTemplate.exchange(githubUri, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+                    restTemplate.exchange(githubUri, HttpMethod.GET, httpEntity, new ParameterizedTypeReference<>() {
                     });
-            allPublicRepositories.addAll(Optional.ofNullable(githubResponse.getBody()).orElse(Collections.emptyList()));
+
+            List<GithubRepository> repositories = Optional.ofNullable(githubResponse.getBody())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .filter(repo -> !repo.isFork())
+                    .collect(Collectors.toList());
+
+            repositories.forEach(getLanguages(gitHubProfile, httpEntity));
+
+            allPublicRepositories.addAll(repositories);
 
             hasNextPage = githubResponse.getHeaders().getOrEmpty("Link")
                     .stream().findFirst()
@@ -63,8 +75,33 @@ public class GitHubCodeService {
             page++;
         } while (hasNextPage);
 
-        List<GithubRepository> notForked = allPublicRepositories.stream().filter(repo -> !repo.isFork()).collect(Collectors.toList());
-        repository.addPublicRepositories(gitHubProfile.getCandidateId(), notForked);
+        repository.addPublicRepositories(gitHubProfile.getCandidateId(), allPublicRepositories);
         repository.updateGitStatus(gitHubProfile.getCandidateId());
+    }
+
+    private Consumer<GithubRepository> getLanguages(GitHubProfileMessage gitHubProfile, HttpEntity<?> httpEntity) {
+        return repository -> {
+            String githubUri = UriComponentsBuilder.newInstance()
+                    .uri(URI.create(GIT_API))
+                    .pathSegment(REPOS_PATH)
+                    .pathSegment(gitHubProfile.getUser())
+                    .pathSegment(repository.getName())
+                    .pathSegment(LANGUAGES_PATH)
+                    .toUriString();
+
+            log.info("Reading languages of repository {} on {}", repository.getName(), githubUri);
+
+            ResponseEntity<GithubRepositoryLanguage> languagesResponse =
+                    restTemplate.exchange(githubUri, HttpMethod.GET, httpEntity, GithubRepositoryLanguage.class);
+
+            GithubRepositoryLanguage languages = languagesResponse.getBody();
+            Long total = Objects.requireNonNull(languages).getLanguages().values().stream().reduce(Long::sum).orElse(0L);
+            Map<String, BigDecimal> proportions = languages.getLanguages().entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> BigDecimal.valueOf((float)(entry.getValue() * 100) / total).setScale(2, RoundingMode.HALF_UP)));
+            languages.setProportion(proportions);
+            repository.setLanguages(languages);
+        };
     }
 }
