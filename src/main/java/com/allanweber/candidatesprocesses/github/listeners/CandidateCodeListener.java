@@ -1,7 +1,7 @@
-package com.allanweber.candidatesprocesses.candidate.listeners;
+package com.allanweber.candidatesprocesses.github.listeners;
 
-import com.allanweber.candidatesprocesses.candidate.dto.GitHubProfileMessage;
-import com.allanweber.candidatesprocesses.candidate.service.GitHubCodeService;
+import com.allanweber.candidatesprocesses.github.dto.GitHubProfileMessage;
+import com.allanweber.candidatesprocesses.github.service.GitHubCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class CandidateListener {
+public class CandidateCodeListener {
 
     private final GitHubCodeService gitHubCodeService;
 

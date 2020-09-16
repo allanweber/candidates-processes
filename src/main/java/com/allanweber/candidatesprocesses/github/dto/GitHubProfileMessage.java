@@ -1,4 +1,4 @@
-package com.allanweber.candidatesprocesses.candidate.dto;
+package com.allanweber.candidatesprocesses.github.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
