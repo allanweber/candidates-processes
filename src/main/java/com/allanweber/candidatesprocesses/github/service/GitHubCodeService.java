@@ -1,9 +1,10 @@
-package com.allanweber.candidatesprocesses.candidate.service;
+package com.allanweber.candidatesprocesses.github.service;
 
-import com.allanweber.candidatesprocesses.candidate.dto.GitHubProfileMessage;
-import com.allanweber.candidatesprocesses.candidate.dto.GithubRepository;
-import com.allanweber.candidatesprocesses.candidate.dto.GithubRepositoryLanguage;
+import com.allanweber.candidatesprocesses.github.dto.GitHubProfileMessage;
+import com.allanweber.candidatesprocesses.github.dto.GithubRepository;
+import com.allanweber.candidatesprocesses.github.dto.GithubRepositoryLanguage;
 import com.allanweber.candidatesprocesses.candidate.repository.CandidateRepository;
+import com.allanweber.candidatesprocesses.github.repository.CandidateRepoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -32,7 +33,8 @@ public class GitHubCodeService {
     private static final String LANGUAGES_PATH = "languages";
     private static final String PAGE_QUERY = "page={page}";
 
-    private final CandidateRepository repository;
+    private final CandidateRepository candidateRepository;
+    private final CandidateRepoRepository candidateRepoRepository;
     private final RestTemplate restTemplate;
 
     public void readRepositories(GitHubProfileMessage gitHubProfile) {
@@ -75,8 +77,8 @@ public class GitHubCodeService {
             page++;
         } while (hasNextPage);
 
-        repository.addPublicRepositories(gitHubProfile.getCandidateId(), allPublicRepositories);
-        repository.updateGitStatus(gitHubProfile.getCandidateId());
+        candidateRepoRepository.savePublicRepositories(gitHubProfile.getCandidateId(), allPublicRepositories);
+        candidateRepository.updateGitStatus(gitHubProfile.getCandidateId());
     }
 
     private Consumer<GithubRepository> getLanguages(GitHubProfileMessage gitHubProfile, HttpEntity<?> httpEntity) {

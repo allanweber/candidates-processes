@@ -1,4 +1,4 @@
-package com.allanweber.candidatesprocesses.candidate.dto;
+package com.allanweber.candidatesprocesses.github.dto;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
