@@ -1,5 +1,6 @@
 package com.allanweber.candidatesprocesses.github.service;
 
+import com.allanweber.candidatesprocesses.github.GitHubException;
 import com.allanweber.candidatesprocesses.github.dto.GitHubProfileMessage;
 import com.allanweber.candidatesprocesses.github.dto.GithubRepository;
 import com.allanweber.candidatesprocesses.github.dto.GithubRepositoryLanguage;
@@ -77,7 +78,10 @@ public class GitHubCodeService {
             page++;
         } while (hasNextPage);
 
-        candidateRepoRepository.savePublicRepositories(gitHubProfile.getCandidateId(), allPublicRepositories);
+        String owner = candidateRepository.getCandidateOwner(gitHubProfile.getCandidateId())
+                .orElseThrow(() -> new GitHubException(String.format("Owner not found for candidate %s", gitHubProfile.getCandidateId())));
+
+        candidateRepoRepository.savePublicRepositories(gitHubProfile.getCandidateId(), owner, allPublicRepositories);
         candidateRepository.updateGitStatus(gitHubProfile.getCandidateId());
     }
 
