@@ -28,4 +28,16 @@ public class GithubRepository {
     private String mainLanguage;
 
     private GithubRepositoryLanguage languages;
+
+    @JsonProperty("stargazers_count")
+    private long stars;
+
+    @JsonProperty("watchers_count")
+    private long watchers;
+
+    private long commits;
+
+    private long pulls;
+
+    private long branches;
 }
