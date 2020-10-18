@@ -3,7 +3,6 @@ package com.allanweber.candidatesprocesses.github.repository;
 import com.allanweber.candidatesprocesses.github.dto.GithubRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -21,7 +20,7 @@ public class CandidateRepoRepository {
 
     public void savePublicRepositories(String candidateId, String owner, List<GithubRepository> allPublicRepositories) {
         Query query = new Query();
-        query.addCriteria(new Criteria("candidateId").is(new ObjectId(candidateId)).and("owner").is(owner));
+        query.addCriteria(new Criteria("candidateId").is(candidateId).and("owner").is(owner));
         Update update = new Update().set("repositories", allPublicRepositories);
         log.info("Saving {} repositories for candidate {}", allPublicRepositories.size(), candidateId);
         mongoTemplate.upsert(query, update, COLLECTION);

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @Data
@@ -27,7 +28,7 @@ public class GithubRepository {
     @JsonProperty("language")
     private String mainLanguage;
 
-    private GithubRepositoryLanguage languages;
+    private List<GithubRepositoryLanguage> languages;
 
     @JsonProperty("stargazers_count")
     private long stars;
