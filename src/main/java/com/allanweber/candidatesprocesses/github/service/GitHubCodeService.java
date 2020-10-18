@@ -92,23 +92,28 @@ public class GitHubCodeService {
 
         log.info("Reading languages of repository {} on {}", repository.getName(), githubUri);
 
-        ResponseEntity<GithubRepositoryLanguage> languagesResponse;
+        ResponseEntity<GithubRepositoryResponseLanguage> languagesResponse;
         try {
-            languagesResponse = restTemplate.exchange(githubUri, HttpMethod.GET, this.httpEntity, GithubRepositoryLanguage.class);
+            languagesResponse = restTemplate.exchange(githubUri, HttpMethod.GET, this.httpEntity, GithubRepositoryResponseLanguage.class);
         } catch (Exception e) {
             log.error("Erro reading {} repository languages on {}", repository.getName(), githubUri, e);
             return;
         }
 
-        GithubRepositoryLanguage languages = languagesResponse.getBody();
+        GithubRepositoryResponseLanguage languages = languagesResponse.getBody();
         Long total = Objects.requireNonNull(languages).getLanguages().values().stream().reduce(Long::sum).orElse(0L);
-        Map<String, BigDecimal> proportions = languages.getLanguages().entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> BigDecimal.valueOf((float) (entry.getValue() * 100) / total).setScale(2, RoundingMode.HALF_UP)));
-        languages.setProportion(proportions);
 
-        repository.setLanguages(languages);
+        List<GithubRepositoryLanguage> repositoryLanguages = languages.getLanguages().entrySet().stream()
+                .map(entry ->
+                        GithubRepositoryLanguage
+                                .builder()
+                                .name(entry.getKey())
+                                .size(entry.getValue())
+                                .proportion(BigDecimal.valueOf((float) (entry.getValue() * 100) / total).setScale(2, RoundingMode.HALF_UP))
+                                .build()
+                ).collect(Collectors.toList());
+
+        repository.setLanguages(repositoryLanguages);
     }
 
     private void getCommits(GitHubProfileMessage gitHubProfile, GithubRepository repository) {

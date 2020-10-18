@@ -1,27 +1,19 @@
 package com.allanweber.candidatesprocesses.github.dto;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@AllArgsConstructor
+@Builder
 @Getter
 public class GithubRepositoryLanguage {
 
-    private final Map<String, Long> languages = new ConcurrentHashMap<>();
+    private final String name;
 
-    @Setter
-    private Map<String, BigDecimal> proportion;
+    private final Long size;
 
-    @JsonAnySetter
-    public void setLanguages(String key, Long value) {
-        languages.put(key, value);
-    }
+    private final BigDecimal proportion;
 }
